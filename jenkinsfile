@@ -1,0 +1,8 @@
+pipeline {
+    agent any
+    environment {
+        CONTAINER_ID = ""
+        SUM_PY_PATH = "/path/to/sum.py"      // Chemin vers sum.py
+        DIR_PATH = "/path/to/docker-project"  // Chemin du Dockerfile
+        TEST_FILE_PATH = "/path/to/test_variables.txt"  // Chemin du fichier de test
+    }

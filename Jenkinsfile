@@ -6,12 +6,4 @@ pipeline {
         DIR_PATH = '.'  // Modifiez avec le chemin réel du Dockerfile
         TEST_FILE_PATH = 'test_variables.txt'  // Chemin du fichier de test
     }
-    stages {
-        // Stages will go here
-    }
-    post {
-        always {
-            // Cleanup actions
-        }
-    }
 }

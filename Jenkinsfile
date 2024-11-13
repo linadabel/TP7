@@ -14,8 +14,20 @@ pipeline {
                     echo "Construction de l'image Docker"
                     bat "docker build -t imagepython ."
                 }
-            }
+            } 
         }
     }
+	stage('Run') {
+            steps {
+                script {
+                    echo 'Running Docker container...'
+                    // Lancer le conteneur à partir de l'image construite
+                    def output = bat(script: "docker run -d --name pythoncontainer imagepython", returnStdout: true).trim()
+                    // Stocker l'ID du conteneur
+                    CONTAINER_ID = output
+                    echo "Container ID: ${CONTAINER_ID}"
+                }
+            }
+        }
 }
  

@@ -29,8 +29,8 @@ pipeline {
                 }
             }
         }
-    }
-         stage('Test') {
+
+        stage('Test') {
             steps {
                 script {
                     echo "Running tests"
@@ -40,20 +40,25 @@ pipeline {
                     
                     // Boucle pour tester chaque ligne
                     testLines.each { line ->
+                        // Vérification qu'il y a bien 3 éléments dans la ligne (2 nombres et la somme attendue)
                         def parts = line.split(' ')
-                        def arg1 = parts[0]
-                        def arg2 = parts[1]
-                        def expectedSum = parts[2].toFloat()
+                        if (parts.size() == 3) {
+                            def arg1 = parts[0]
+                            def arg2 = parts[1]
+                            def expectedSum = parts[2].toFloat()
 
-                        // Exécution du script sum.py dans le conteneur
-                        def output = sh(script: "docker exec ${CONTAINER_ID} python3 /app/sum.py ${arg1} ${arg2}", returnStdout: true).trim()
-                        def result = output.toFloat()
+                            // Exécution du script sum.py dans le conteneur
+                            def output = bat(script: "docker exec ${CONTAINER_ID} python3 /app/sum.py ${arg1} ${arg2}", returnStdout: true).trim()
+                            def result = output.toFloat()
 
-                        // Comparaison avec la somme attendue
-                        if (result == expectedSum) {
-                            echo "Test passed: ${arg1} + ${arg2} = ${result}"
+                            // Comparaison avec la somme attendue
+                            if (result == expectedSum) {
+                                echo "Test passed: ${arg1} + ${arg2} = ${result}"
+                            } else {
+                                error "Test failed: expected ${expectedSum} but got ${result}"
+                            }
                         } else {
-                            error "Test failed: expected ${expectedSum} but got ${result}"
+                            error "Invalid test line: ${line}"
                         }
                     }
                 }
@@ -63,10 +68,10 @@ pipeline {
         stage('Post') {
             steps {
                 script {
-                    // Arrêt et suppression du conteneur
                     echo "Stopping and removing Docker container"
-                    bat "docker stop ${CONTAINER_ID}"
-                    bat "docker rm ${CONTAINER_ID}"
+                    // Arrêt et suppression du conteneur, sécuriser avec || true pour éviter les erreurs si le conteneur n'existe plus
+                    bat "docker stop ${CONTAINER_ID} || true"
+                    bat "docker rm ${CONTAINER_ID} || true"
                 }
             }
         }
@@ -79,10 +84,10 @@ pipeline {
                     bat 'docker login -u lina2607 -p DABEL2607'
 
                     // Tagging de l'image Docker
-                    bat "docker tag sum-python-image lina2607/sum-python-image:latest"
+                    bat "docker tag imagepython lina2607/sum-python-image:latest"
 
                     // Pousser l'image vers DockerHub
-                    bat"docker push lina2607/sum-python-image:latest"
+                    bat "docker push lina2607/sum-python-image:latest"
                 }
             }
         }
@@ -95,5 +100,4 @@ pipeline {
             bat "docker rm ${CONTAINER_ID} || true"
         }
     }
-}
 }

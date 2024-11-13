@@ -2,8 +2,8 @@ pipeline {
     agent any
     environment {
         CONTAINER_ID = ''
-        SUM_PY_PATH = 'sum.py'  // Modifiez avec le chemin réel de votre script
-        DIR_PATH = '.'  // Modifiez avec le chemin réel du Dockerfile
+        SUM_PY_PATH = 'sum.py'  // Chemin réel de votre script sum.py
+        DIR_PATH = '.'  // Chemin réel du Dockerfile
         TEST_FILE_PATH = 'test_variables.txt'  // Chemin du fichier de test
     }
     stages {
@@ -15,5 +15,6 @@ pipeline {
                     sh "docker build -t pythonImage ."
                 }
             }
-}
+        }
+    }
 }

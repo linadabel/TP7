@@ -12,7 +12,7 @@ pipeline {
                 script {
                     // Construction de l'image Docker
                     echo "Construction de l'image Docker"
-                    bat "docker build -t pythonImage ."
+                    bat "docker build -t imagepython ."
                 }
             }
         }

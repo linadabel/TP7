@@ -21,10 +21,9 @@ pipeline {
             steps {
                 script {
                     echo "Running Docker container..."
-                    // Run the container from the image built
+                    // Lancer le conteneur à partir de l'image construite
                     def output = bat(script: "docker run -d --name pythoncontainer imagepython", returnStdout: true).trim()
-                    
-                    // Store the container ID returned by Docker
+                    // Stocker l'ID du conteneur
                     CONTAINER_ID = output
                     echo "Container ID: ${CONTAINER_ID}"
                 }

@@ -10,7 +10,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    echo "Building Docker image..."
+                    echo "Construction de l'image Docker"
                     // Construction de l'image Docker
                     bat "docker build -t imagepython ."
                 }

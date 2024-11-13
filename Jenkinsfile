@@ -7,10 +7,12 @@ pipeline {
         TEST_FILE_PATH = 'test_variables.txt'  // Chemin du fichier de test
     }
     stages {
-        // Stage 1: Checkout code from GitHub
-        stage('Checkout') {
+        stage('Build') {
             steps {
-                git 'https://github.com/linadabel/TP7'  // Replace with your GitHub repo URL
+                script {
+                    // Construction de l'image Docker
+                    echo "Construction de l'image Docker"
+                    sh "docker build -t pythonImage ."
+                }
             }
-        }
 }

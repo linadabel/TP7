@@ -14,7 +14,7 @@ pipeline {
                     // Construction de l'image Docker
                     bat "docker build -t imagepython ."
                 }
-            }
-        }
-}
+            }
+        }
+    }
 }

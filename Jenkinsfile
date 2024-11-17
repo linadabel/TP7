@@ -6,25 +6,29 @@ pipeline {
         DOCKERFILE_PATH = './'
         TEST_FILE_PATH = './test_variables.txt'
         IMAGE_NAME = 'imagepython'
-        DOCKER_USERNAME = 'lina2607'   // Docker Hub username
-        DOCKER_PASSWORD = 'DABEL2607'   // Docker Hub password
-    
+        CONTAINER_NAME = 'sum-container'  // Le nom du conteneur
+        DOCKER_USERNAME = 'lina2607'  // Docker Hub username
+        DOCKER_PASSWORD = 'DABEL2607'  // Docker Hub password
     }
     stages {
         stage('Build') {
             steps {
                 script {
-                    bat 'docker build -t ${IMAGE_NAME} .' 
+                    echo "Building Docker image..."
+                    bat "docker build -t ${IMAGE_NAME} ${DOCKERFILE_PATH}"
                 }
             }
         }
         stage('Run') {
             steps {
                 script {
+                    echo "Removing existing container if it exists..."
                     bat 'docker rm -f sum-container || true'
-                    def output = bat(script: 'docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME} tail -f /dev/null', returnStdout: true).trim()
-                    CONTAINER_ID = output.split('\n')[-1].trim()
-                    echo "Conteneur lancé avec l'ID : ${CONTAINER_ID}"
+                    
+                    echo "Running Docker container..."
+                    def output = bat(script: "docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME} tail -f /dev/null", returnStdout: true).trim()
+                    CONTAINER_ID = output
+                    echo "Container started with ID: ${CONTAINER_ID}"
                 }
             }
         }
@@ -38,12 +42,14 @@ pipeline {
                         def arg2 = vars[1]
                         def expectedSum = vars[2].toFloat()
 
+                        echo "Running test: ${arg1} + ${arg2}"
                         def output = bat(script: "docker exec ${CONTAINER_ID} python ${SUM_PY_PATH} ${arg1} ${arg2}", returnStdout: true).trim()
-                        def result = output.tokenize().last().toFloat() 
+                        def result = output.tokenize().last().toFloat()
+
                         if (result == expectedSum) {
-                            echo "Test réussi pour ${arg1} + ${arg2} = ${expectedSum}"
+                            echo "Test passed: ${arg1} + ${arg2} = ${expectedSum}"
                         } else {
-                            error "Test échoué pour ${arg1} + ${arg2}. Résultat attendu : ${expectedSum}, obtenu : ${result}"
+                            error "Test failed for ${arg1} + ${arg2}. Expected: ${expectedSum}, Got: ${result}"
                         }
                     }
                 }
@@ -52,27 +58,32 @@ pipeline {
         stage('Performance') {
             steps {
                 script {
+                    echo "Checking container performance..."
                     def stats = bat(script: "docker stats --no-stream ${CONTAINER_ID}", returnStdout: true).trim()
-                    echo "Performances du conteneur ${CONTAINER_ID} : \n${stats}"
+                    echo "Container ${CONTAINER_ID} stats: \n${stats}"
                 }
             }
         }
         stage('Deploy') {
             steps {
                 script {
+                    echo "Logging into Docker Hub..."
                     bat "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
-                    bat "docker tag sum-image ${DOCKER_USERNAME}/pythonimage:latest"
+                    echo "Tagging and pushing the Docker image to Docker Hub..."
+                    bat "docker tag ${IMAGE_NAME} ${DOCKER_USERNAME}/pythonimage:latest"
                     bat "docker push ${DOCKER_USERNAME}/pythonimage:latest"
                 }
             }
         }
+    }
     post {
         always {
             script {
                 if (CONTAINER_ID) {
+                    echo "Stopping and removing container ${CONTAINER_ID}..."
                     bat "docker stop ${CONTAINER_ID}"
                     bat "docker rm ${CONTAINER_ID}"
-                    echo "Conteneur ${CONTAINER_ID} arrêté et supprimé."
+                    echo "Container ${CONTAINER_ID} stopped and removed."
                 }
             }
         }

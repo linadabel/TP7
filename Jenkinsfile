@@ -74,4 +74,12 @@ pipeline {
             }
         }
     }
+    stage('Performance') {
+            steps {
+                script {
+                    def stats = bat(script: "docker stats --no-stream ${CONTAINER_ID}", returnStdout: true).trim()
+                   
+                }
+            }
+        }
 }

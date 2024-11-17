@@ -17,4 +17,14 @@ pipeline {
             }
         }
     }
+    stage('Run') {
+            steps {
+                script {
+                    bat 'docker rm -f python-container || true'
+                    def output = bat(script: 'docker run -d --name sum-container imagepython tail -f /dev/null', returnStdout: true).trim()
+                    CONTAINER_ID = output.split('\n')[-1].trim()
+                    echo "Conteneur lancé avec l'ID : ${CONTAINER_ID}"
+                }
+            }
+        }
 }

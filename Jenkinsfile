@@ -14,7 +14,7 @@ pipeline {
             steps {
                 script {
                     echo "Construction de l'image Docker"
-                        bat "docker build -t ${IMAGE_NAME} ${DIR_PATH}"   
+                    bat "docker build -t ${IMAGE_NAME} ${DIR_PATH}"   
                 }
             }
         }
@@ -22,15 +22,13 @@ pipeline {
             steps {
                 script {
                     echo "Démarrage du conteneur Docker"
-                        //supprimer le conteneur s'il existe deja
-                        bat "docker rm -f ${CONTAINER_NAME} || true" 
-                        def output = bat(script: "docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME} tail -f /dev/null", returnStdout:
-                        echo "Conteneur lancé avec succès : ${output.split('\n'[-1].trim(}"
-                  
-                    }
+                    // Supprimer le conteneur s'il existe déjà
+                    bat "docker rm -f ${CONTAINER_NAME} || true"
+                    def output = bat(script: "docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME} tail -f /dev/null", returnStdout: true).trim()
+                    echo "Conteneur lancé avec succès : ${output}"
                 }
             }
-        
+        }
         stage('Test') {
             steps {
                 script {
@@ -54,35 +52,30 @@ pipeline {
                                 }
                             }
                         }
-                    
+                    } catch (Exception e) {
+                        error "Une erreur est survenue pendant les tests : ${e.message}"
                     }
-                }
-            }
-        
-        stage('Deploy') {
-            steps {
-                script {
-         
-                        bat "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
-                        bat "docker tag ${IMAGE_NAME} ${DOCKER_USERNAME}/pythonimage:latest"
-                        bat "docker push ${DOCKER_USERNAME}/pythonimage:latest"
-                    
-                    }
-                }
-            }
-        
-    
-    post {
-        always {
-            script {
-              
-             
-                    if (CONTAINER_ID) {
-                        bat "docker stop ${CONTAINER_ID} || true"
-                        bat "docker rm ${CONTAINER_ID} || true"
-                        echo "Conteneur ${CONTAINER_ID} arréte et supprimé."
                 }
             }
         }
-    
+        stage('Deploy') {
+            steps {
+                script {
+                    echo "Déploiement de l'image Docker"
+                    bat "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                    bat "docker tag ${IMAGE_NAME} ${DOCKER_USERNAME}/pythonimage:latest"
+                    bat "docker push ${DOCKER_USERNAME}/pythonimage:latest"
+                }
+            }
+        }
+    }
+    post {
+        always {
+            script {
+                echo "Nettoyage des conteneurs"
+                bat "docker rm -f ${CONTAINER_NAME} || true"
+                echo "Conteneur ${CONTAINER_NAME} supprimé."
+            }
+        }
+    }
 }

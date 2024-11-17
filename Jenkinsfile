@@ -16,9 +16,14 @@ pipeline {
                 script {
                     try {
                         echo "Construction de l'image Docker"
-                        bat "docker build -t ${IMAGE_NAME} ${DIR_PATH}"
+                        // Affiche les logs de Docker en cas d'échec
+                        bat "docker build --no-cache -t ${IMAGE_NAME} ${DIR_PATH}"
                     } catch (Exception e) {
-                        error "Erreur lors de la construction de l'image Docker : ${e.message}"
+                        echo "Erreur lors de la construction de l'image Docker : ${e.message}"
+                        // Affiche les logs de Docker pour aider au débogage
+                        echo "Logs d'erreur de la construction Docker :"
+                        bat "docker build --no-cache -t ${IMAGE_NAME} ${DIR_PATH} || true"
+                        error "Échec de la construction de l'image Docker"
                     }
                 }
             }
@@ -28,7 +33,8 @@ pipeline {
                 script {
                     try {
                         echo "Démarrage du conteneur Docker"
-                        bat "docker rm -f ${CONTAINER_NAME} || true" // Supprime le conteneur s'il existe déjà
+                        // Supprime le conteneur s'il existe déjà
+                        bat "docker rm -f ${CONTAINER_NAME} || true"
                         def output = bat(script: "docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME} tail -f /dev/null", returnStdout: true).trim()
                         env.CONTAINER_ID = output.split('\n')[-1].trim()
                         echo "Conteneur lancé avec succès : ${env.CONTAINER_ID}"

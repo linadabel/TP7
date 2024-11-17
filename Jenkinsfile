@@ -7,6 +7,8 @@ pipeline {
         TEST_FILE_PATH = 'test_variables.txt'
         CONTAINER_NAME = 'python-container'
         IMAGE_NAME = 'imagepython'
+	DOCKER_USERNAME = 'lina2607'   
+        DOCKER_PASSWORD = 'DABEL2607'
     }
     stages {
         stage('Build') {
@@ -58,6 +60,16 @@ pipeline {
             }
         }
     }
+    stage('Deploy') {
+            steps {
+                script {
+                    bat "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                    bat "docker tag sum-image ${DOCKER_USERNAME}/sum-image:latest"
+                    bat "docker push ${DOCKER_USERNAME}/sum-image:latest"
+                }
+            }
+        }
+
     post {
         always {
             script {
@@ -69,6 +81,5 @@ pipeline {
             }
         }
     }
-
    
 }

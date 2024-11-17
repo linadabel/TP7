@@ -14,9 +14,7 @@ pipeline {
             steps {
                 script {
                     echo "Construction de l'image Docker"
-                    bat(script: "docker build -t ${IMAGE_NAME} ${DIR_PATH}")
+                    bat "docker build -t ${IMAGE_NAME} ${DIR_PATH}"   
                 }
-            }
-        }
-     }
-}
+            }
+        }

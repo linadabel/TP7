@@ -7,7 +7,7 @@ pipeline {
         CONTAINER_NAME = 'python-container'
         IMAGE_NAME = 'imagepython'
         DOCKER_USERNAME = 'lina2607'       // Docker Hub username
-        DOCKER_PASSWORD = credentials('docker-hub-password')  // Utiliser les credentials Jenkins
+        DOCKER_PASSWORD = 'DABEL2607'
     }
     stages {
         stage('Build') {

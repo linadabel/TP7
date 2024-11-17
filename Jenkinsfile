@@ -5,6 +5,7 @@ pipeline {
         SUM_PY_PATH = '/app/sum.py'
         DOCKERFILE_PATH = './'
         TEST_FILE_PATH = './test_variables.txt'
+        IMAGE_NAME = 'imagepython'
         DOCKER_USERNAME = 'lina2607'   // Docker Hub username
         DOCKER_PASSWORD = 'DABEL2607'   // Docker Hub password
     
@@ -13,7 +14,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    bat 'docker build -t sum-image .' 
+                    bat 'docker build -t ${IMAGE_NAME} .' 
                 }
             }
         }
@@ -21,7 +22,7 @@ pipeline {
             steps {
                 script {
                     bat 'docker rm -f sum-container || true'
-                    def output = bat(script: 'docker run -d --name sum-container sum-image tail -f /dev/null', returnStdout: true).trim()
+                    def output = bat(script: 'docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME} tail -f /dev/null', returnStdout: true).trim()
                     CONTAINER_ID = output.split('\n')[-1].trim()
                     echo "Conteneur lancé avec l'ID : ${CONTAINER_ID}"
                 }

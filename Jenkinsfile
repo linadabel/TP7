@@ -6,9 +6,8 @@ pipeline {
         TEST_FILE_PATH = 'test_variables.txt'
         CONTAINER_NAME = 'python-container'
         IMAGE_NAME = 'imagepython'
-	DOCKER_USERNAME = 'lina2607'   // Docker Hub username
+        DOCKER_USERNAME = 'lina2607'   // Docker Hub username
         DOCKER_PASSWORD = 'DABEL2607'
-        
     }
     stages {
         stage('Build') {
@@ -55,12 +54,11 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-
-                        bat "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
-                    bat "docker tag pythonimage ${DOCKER_USERNAME}/pythonimage:latest"
+                script {
+                    echo "Déploiement de l'image Docker sur DockerHub"
+                    bat "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
+                    bat "docker tag ${IMAGE_NAME} ${DOCKER_USERNAME}/pythonimage:latest"
                     bat "docker push ${DOCKER_USERNAME}/pythonimage:latest"
-
-                    }
                 }
             }
         }
@@ -68,8 +66,8 @@ pipeline {
     post {
         always {
             script {
+                echo "Nettoyage des ressources Docker"
                 if (env.CONTAINER_ID) {
-                    echo "Nettoyage des ressources Docker"
                     bat "docker stop ${CONTAINER_ID} || true"
                     bat "docker rm ${CONTAINER_ID} || true"
                 }

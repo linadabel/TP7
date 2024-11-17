@@ -7,7 +7,7 @@ pipeline {
         CONTAINER_NAME = 'python-container'
         IMAGE_NAME = 'imagepython'
         DOCKER_USERNAME = 'lina2607'       // Docker Hub username
-        DOCKER_PASSWORD = 'DABEL2607'
+        DOCKER_PASSWORD = 'DABEL2607'      // Docker Hub password
     }
     stages {
         stage('Build') {
@@ -16,7 +16,7 @@ pipeline {
                     echo "Construction de l'image Docker"
                     bat "docker build -t ${IMAGE_NAME} ${DIR_PATH}"   
                 }
-            }
-        }
-     }
-  
+            }
+        }
+    }
+}

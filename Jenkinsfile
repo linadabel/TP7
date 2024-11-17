@@ -14,7 +14,11 @@ pipeline {
             steps {
                 script {
                     echo "Construction de l'image Docker"
-                    bat "docker build -t ${IMAGE_NAME} ${DIR_PATH}"   
+                    def buildResult = bat(script: "docker build -t ${IMAGE_NAME} ${DIR_PATH}", returnStdout: true, returnStatus: true)
+                    echo "Build result: ${buildResult}"
+                    if (buildResult != 0) {
+                        error "Le build Docker a échoué avec le code de sortie ${buildResult}"
+                    }
                 }
             }
         }

@@ -22,9 +22,11 @@ pipeline {
             steps {
                 script {
                     echo "Démarrage du conteneur Docker"
-                    bat "docker rm -f ${CONTAINER_NAME} || true" // Supprime le conteneur s'il existe déjà
+                    // Supprimer le conteneur s'il existe déjà
+                    bat "docker rm -f ${CONTAINER_NAME} || true"
+                    // Démarrer un conteneur et récupérer l'ID du conteneur
                     def output = bat(script: "docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME} tail -f /dev/null", returnStdout: true).trim()
-                    env.CONTAINER_ID = output.split('\n')[-1].trim() // Récupère l'ID du conteneur
+                    env.CONTAINER_ID = output.split('\n')[-1].trim()
                     echo "Conteneur lancé avec succès : ${env.CONTAINER_ID}"
                 }
             }
@@ -33,6 +35,7 @@ pipeline {
             steps {
                 script {
                     echo "Démarrage des tests"
+                    // Lire les tests depuis le fichier et exécuter chaque test
                     def testLines = readFile(TEST_FILE_PATH).split('\n')
                     for (line in testLines) {
                         if (line.trim()) { // Ignore les lignes vides
@@ -41,9 +44,11 @@ pipeline {
                             def arg2 = vars[1]
                             def expectedSum = vars[2].toFloat()
 
+                            // Exécuter le script Python dans le conteneur
                             def output = bat(script: "docker exec ${CONTAINER_NAME} python ${SUM_PY_PATH} ${arg1} ${arg2}", returnStdout: true).trim()
                             def result = output.tokenize().last().toFloat()
                             
+                            // Vérifier si le résultat est correct
                             if (result == expectedSum) {
                                 echo "Test réussi pour ${arg1} + ${arg2} = ${expectedSum}"
                             } else {
@@ -58,6 +63,7 @@ pipeline {
             steps {
                 script {
                     echo "Déploiement de l'image Docker sur DockerHub"
+                    // Se connecter à Docker Hub et pousser l'image
                     bat "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
                     bat "docker tag ${IMAGE_NAME} ${DOCKER_USERNAME}/pythonimage:latest"
                     bat "docker push ${DOCKER_USERNAME}/pythonimage:latest"
@@ -65,11 +71,11 @@ pipeline {
             }
         }
     }
-    
     post {
         always {
             script {
                 echo "Nettoyage des ressources Docker"
+                // Arrêter et supprimer le conteneur Docker à la fin
                 if (env.CONTAINER_ID) {
                     bat "docker stop ${CONTAINER_ID} || true"
                     bat "docker rm ${CONTAINER_ID} || true"

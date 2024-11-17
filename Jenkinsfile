@@ -24,7 +24,7 @@ pipeline {
                     echo "Démarrage du conteneur Docker"
                     bat "docker rm -f ${CONTAINER_NAME} || true" // Supprime le conteneur s'il existe déjà
                     def output = bat(script: "docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME} tail -f /dev/null", returnStdout: true).trim()
-                    env.CONTAINER_ID = output.split('\n')[-1].trim()
+                    env.CONTAINER_ID = output.split('\n')[-1].trim() // Récupère l'ID du conteneur
                     echo "Conteneur lancé avec succès : ${env.CONTAINER_ID}"
                 }
             }
@@ -65,7 +65,7 @@ pipeline {
             }
         }
     }
-
+    
     post {
         always {
             script {

@@ -24,8 +24,9 @@ pipeline {
                     echo "Démarrage du conteneur Docker"
                     // Supprimer le conteneur s'il existe déjà
                     bat "docker rm -f ${CONTAINER_NAME} || true"
+              	    //lancer un nouveau conteneur
                     def output = bat(script: "docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME} tail -f /dev/null", returnStdout: true).trim()
-                    echo "Conteneur lancé avec succès : ${output}"
+                    echo "Conteneur lancé avec succès : ${output.split('\n)[-1].trim()}"
                 }
             }
         }
@@ -42,9 +43,11 @@ pipeline {
                                 def arg2 = vars[1]
                                 def expectedSum = vars[2].toFloat()
 
+				//Exécution du scipt Python dans le conteneur
                                 def output = bat(script: "docker exec ${CONTAINER_NAME} python ${SUM_PY_PATH} ${arg1} ${arg2}", returnStdout: true).trim()
                                 def result = output.tokenize().last().toFloat()
-
+				
+				//Vérification du résultat
                                 if (result == expectedSum) {
                                     echo "Test réussi pour ${arg1} + ${arg2} = ${expectedSum}"
                                 } else {
@@ -52,9 +55,6 @@ pipeline {
                                 }
                             }
                         }
-                    } catch (Exception e) {
-                        error "Une erreur est survenue pendant les tests : ${e.message}"
-                    }
                 }
             }
         }

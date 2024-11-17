@@ -65,15 +65,25 @@ pipeline {
             }
         }
         stage('Performance') {
-            steps {
-                script {
-                    echo "Collecte des statistiques de performance Docker"
+    steps {
+        script {
+            try {
+                echo "Collecte des statistiques de performance Docker"
+                
+                // Vérifie si CONTAINER_ID est défini
+                if (env.CONTAINER_ID) {
                     def stats = bat(script: "docker stats --no-stream ${CONTAINER_ID}", returnStdout: true).trim()
                     echo "Docker Stats: ${stats}"
+                } else {
+                    echo "Aucun conteneur actif pour collecter des statistiques."
                 }
+            } catch (Exception e) {
+                echo "Erreur lors de la collecte des statistiques de performance : ${e.message}"
             }
         }
     }
+}
+
     post {
         always {
             script {

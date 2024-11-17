@@ -15,7 +15,7 @@ pipeline {
                 script {
                     echo "Construction de l'image Docker"
                     try {
-                        // Afficher les logs détaillés avec --no-cache et --progress=plain
+                        // Affichage des logs détaillés pour docker build
                         bat "docker build --no-cache --progress=plain -t ${IMAGE_NAME} ${DIR_PATH}"
                     } catch (Exception e) {
                         error "Erreur lors de la construction de l'image Docker: ${e.getMessage()}"

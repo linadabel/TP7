@@ -14,12 +14,7 @@ pipeline {
             steps {
                 script {
                     echo "Construction de l'image Docker"
-                    try {
-                        // Affichage des logs détaillés pour docker build
-                        bat "docker build --no-cache --progress=plain -t ${IMAGE_NAME} ${DIR_PATH}"
-                    } catch (Exception e) {
-                        error "Erreur lors de la construction de l'image Docker: ${e.getMessage()}"
-                    }
+                        bat "docker build -t ${IMAGE_NAME} ${DIR_PATH}"   
                 }
             }
         }
@@ -27,17 +22,15 @@ pipeline {
             steps {
                 script {
                     echo "Démarrage du conteneur Docker"
-                    try {
-                        bat "docker rm -f ${CONTAINER_NAME} || true" // Supprimer le conteneur s'il existe déjà
-                        def output = bat(script: "docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME} tail -f /dev/null", returnStdout: true).trim()
-                        env.CONTAINER_ID = output.split('\n')[-1].trim()
-                        echo "Conteneur lancé avec succès : ${env.CONTAINER_ID}"
-                    } catch (Exception e) {
-                        error "Erreur lors du démarrage du conteneur Docker: ${e.getMessage()}"
+                        //supprimer le conteneur s'il existe deja
+                        bat "docker rm -f ${CONTAINER_NAME} || true" 
+                        def output = bat(script: "docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME} tail -f /dev/null", returnStdout:
+                        echo "Conteneur lancé avec succès : ${output.split('\n'[-1].trim(}"
+                  
                     }
                 }
             }
-        }
+        
         stage('Test') {
             steps {
                 script {
@@ -61,40 +54,35 @@ pipeline {
                                 }
                             }
                         }
-                    } catch (Exception e) {
-                        error "Erreur lors des tests : ${e.getMessage()}"
+                    
                     }
                 }
             }
-        }
+        
         stage('Deploy') {
             steps {
                 script {
-                    echo "Déploiement de l'image Docker sur DockerHub"
-                    try {
+         
                         bat "docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}"
                         bat "docker tag ${IMAGE_NAME} ${DOCKER_USERNAME}/pythonimage:latest"
                         bat "docker push ${DOCKER_USERNAME}/pythonimage:latest"
-                    } catch (Exception e) {
-                        error "Erreur lors du déploiement de l'image Docker: ${e.getMessage()}"
+                    
                     }
                 }
             }
-        }
-    }
+        
+    
     post {
         always {
             script {
-                echo "Nettoyage des ressources Docker"
-                try {
-                    if (env.CONTAINER_ID) {
+              
+             
+                    if (CONTAINER_ID) {
                         bat "docker stop ${CONTAINER_ID} || true"
                         bat "docker rm ${CONTAINER_ID} || true"
-                    }
-                } catch (Exception e) {
-                    echo "Erreur lors du nettoyage des ressources Docker: ${e.getMessage()}"
+                        echo "Conteneur ${CONTAINER_ID} arréte et supprimé."
                 }
             }
         }
-    }
+    
 }

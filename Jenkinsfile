@@ -14,7 +14,10 @@ pipeline {
             steps {
                 script {
                     echo "Construction de l'image Docker"
-                    bat "docker build -t ${IMAGE_NAME} ${DIR_PATH}"   
+                    def buildResult = bat(script: "docker build -t ${IMAGE_NAME} ${DIR_PATH}", returnStatus: true)
+                    if (buildResult != 0) {
+                        error "Erreur lors de la construction de l'image Docker. Code de retour: ${buildResult}"
+                    }
                 }
             }
         }
@@ -25,6 +28,9 @@ pipeline {
                     // Supprimer le conteneur s'il existe déjà
                     bat "docker rm -f ${CONTAINER_NAME} || true"
                     def output = bat(script: "docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME} tail -f /dev/null", returnStdout: true).trim()
+                    if (output == '') {
+                        error "Erreur lors du démarrage du conteneur Docker. Sortie vide."
+                    }
                     echo "Conteneur lancé avec succès : ${output}"
                 }
             }
@@ -42,11 +48,12 @@ pipeline {
                                 def arg2 = vars[1]
                                 def expectedSum = vars[2].toFloat()
 
-                                // Exécute le script Python dans le conteneur Docker
+                                echo "Exécution du test pour ${arg1} + ${arg2}"
                                 def output = bat(script: "docker exec ${CONTAINER_NAME} python ${SUM_PY_PATH} ${arg1} ${arg2}", returnStdout: true).trim()
+                                echo "Sortie du conteneur: ${output}"
                                 def result = output.tokenize().last().toFloat()
 
-                                // Vérifie si le résultat est correct
+                                // Vérification du résultat
                                 if (result == expectedSum) {
                                     echo "Test réussi pour ${arg1} + ${arg2} = ${expectedSum}"
                                 } else {
@@ -69,7 +76,10 @@ pipeline {
                     // Tagging de l'image
                     bat "docker tag ${IMAGE_NAME} ${DOCKER_USERNAME}/pythonimage:latest"
                     // Push de l'image vers Docker Hub
-                    bat "docker push ${DOCKER_USERNAME}/pythonimage:latest"
+                    def pushResult = bat(script: "docker push ${DOCKER_USERNAME}/pythonimage:latest", returnStatus: true)
+                    if (pushResult != 0) {
+                        error "Erreur lors du push de l'image Docker vers Docker Hub. Code de retour: ${pushResult}"
+                    }
                 }
             }
         }

@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
     environment {
@@ -65,7 +64,7 @@ pipeline {
                 }
             }
         }
-   
+    }
 
     post {
         always {
@@ -77,6 +76,5 @@ pipeline {
                 }
             }
         }
-        
     }
-} 
+}

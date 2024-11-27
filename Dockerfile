@@ -1,8 +1,17 @@
-# Utiliser l'image Python Alpine légère
-FROM python:3.13.0-alpine3.20
+# Utiliser une image Python officielle
+FROM python:3.9-slim
 
-# Copier le script Python dans le conteneur
-COPY sum.py /app/sum.py
+# Définir le répertoire de travail
+WORKDIR /app
 
-# Commande par défaut pour exécuter le script avec des arguments
-CMD ["python", "/app/sum.py"]
+# Copier les fichiers nécessaires
+COPY . /app
+
+# Installer les dépendances (si vous avez un fichier requirements.txt)
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Exposer le port 5000 (assurez-vous que votre application écoute sur ce port)
+EXPOSE 5000
+
+# Lancer l'application avec Python
+CMD ["python", "sum.py"]

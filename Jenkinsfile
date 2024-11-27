@@ -8,6 +8,9 @@ pipeline {
         IMAGE_NAME = 'imagepython'
         DOCKER_USERNAME = 'lina2607'       // Docker Hub username
         DOCKER_PASSWORD = 'DABEL2607'
+        CONTAINER_ID = '' // Déclarez CONTAINER_ID pour le suivre tout au long du pipeline
+        SPHINX_SOURCE = '/app/docs/source' 
+        SPHINX_BUILD_DIR = '/app/docs/build' 
     }
     stages {
         stage('Build') {
@@ -24,16 +27,17 @@ pipeline {
                     echo "Démarrage du conteneur Docker"
                     // Supprimer le conteneur s'il existe déjà
                     bat "docker rm -f ${CONTAINER_NAME} || true"
-              	    //lancer un nouveau conteneur
+                    // Lancer un nouveau conteneur
                     def output = bat(script: "docker run -d --name ${CONTAINER_NAME} ${IMAGE_NAME} tail -f /dev/null", returnStdout: true).trim()
-                    echo "Conteneur lancé avec succès : ${output.split('\n)[-1].trim()}"
+                    CONTAINER_ID = output.split('\n')[-1].trim() // Assurez-vous de récupérer l'ID du conteneur
+                    echo "Conteneur lancé avec succès avec l'ID : ${CONTAINER_ID}"
                 }
             }
         }
-       stage('Test') {
+        stage('Test') {
             steps {
                 script {
-                    def testLines = readFile(TEST_FILE_PATH).split('\n')
+                    def testLines = readFile(TEST_FILE_PATH).split('\n').findAll { it } // Ignore les lignes vides
                     for (line in testLines) {
                         def vars = line.split(' ')
                         def arg1 = vars[0]
@@ -51,16 +55,14 @@ pipeline {
                 }
             }
         }
-          stage('Performance Monitoring') {
-              steps {
+        stage('Performance Monitoring') {
+            steps {
                 script {
                     def stats = bat(script: "docker stats --no-stream ${CONTAINER_ID}", returnStdout: true).trim()
                     echo "Performances du conteneur ${CONTAINER_ID} : \n${stats}"
                 }
             }
         }
-
-       
         stage('Deploy') {
             steps {
                 script {
@@ -71,26 +73,26 @@ pipeline {
                 }
             }
         }
-       stage('Documentation') {
+        stage('Documentation') {
             steps {
                 script {
+                    // Assurez-vous que les variables SPHINX_SOURCE et SPHINX_BUILD_DIR sont définies ou passées dans l'environnement si nécessaire
                     bat "docker exec ${CONTAINER_ID} sphinx-build -b html ${SPHINX_SOURCE} ${SPHINX_BUILD_DIR}"
-
                     archiveArtifacts artifacts: "${SPHINX_BUILD_DIR}/**/*.html", allowEmptyArchive: true
                 }
             }
         }
     }
-    
     post {
         always {
             script {
                 echo "Nettoyage des conteneurs"
-                bat "docker rm -f ${CONTAINER_NAME} || true"
-                echo "Conteneur ${CONTAINER_NAME} supprimé."
+                // Ne supprimez le conteneur que si l'ID est défini
+                if (CONTAINER_ID?.trim()) {
+                    bat "docker rm -f ${CONTAINER_NAME} || true"
+                    echo "Conteneur ${CONTAINER_NAME} supprimé."
+                }
             }
         }
     }
 }
-
-

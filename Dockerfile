@@ -1,17 +1,23 @@
-# Utiliser une image Python officielle
-FROM python:3.9-slim
+# Utiliser une image de base Python
+FROM python:3.13.0-alpine3.20
 
-# Définir le répertoire de travail
+# Installer Sphinx et toutes les autres dépendances nécessaires pour votre script Python
+RUN pip install sphinx
+
+# Installer toutes les dépendances nécessaires pour le script Python
+RUN pip install --no-cache-dir some-package
+
+# Définir le répertoire de travail pour l'application
 WORKDIR /app
 
-# Copier les fichiers nécessaires
-COPY . /app
+# Copier le script sum.py dans le conteneur
+COPY sum.py /app/
 
-# Installer les dépendances (si vous avez un fichier requirements.txt)
-RUN pip install --no-cache-dir -r requirements.txt
+# Créer un répertoire pour la documentation Sphinx
+COPY ./docs /app/docs
 
-# Exposer le port 5000 (assurez-vous que votre application écoute sur ce port)
-EXPOSE 5000
+# Définir le répertoire de travail où se trouvent le script sum.py et les documents
+WORKDIR /app
 
-# Lancer l'application avec Python
-CMD ["python", "sum.py"]
+# exécuter Sphinx pour initialiser la documentation
+# RUN sphinx-quickstart /app/docs

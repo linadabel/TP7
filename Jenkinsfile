@@ -86,11 +86,10 @@ pipeline {
     post {
         always {
             script {
-                echo "Nettoyage des conteneurs"
-                // Ne supprimez le conteneur que si l'ID est défini
-                if (CONTAINER_ID?.trim()) {
-                    bat "docker rm -f ${CONTAINER_NAME} || true"
-                    echo "Conteneur ${CONTAINER_NAME} supprimé."
+                if (CONTAINER_ID) {
+                    bat "docker stop ${CONTAINER_ID}"
+                    bat "docker rm ${CONTAINER_ID}"
+                    echo "Conteneur ${CONTAINER_ID} arrêté et supprimé."
                 }
             }
         }
